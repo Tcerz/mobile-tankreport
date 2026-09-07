@@ -39,13 +39,27 @@ class InputLaporanPage extends StatefulWidget {
 
 const _judulLangkah = ['Info & Foto', '1. Loading', '2. Discharge', '3. Penyaluran', '4. Storage (Penimbunan)'];
 
+/// PIC Patroli terdiri dari 2 peran (Loading Master & HSSE), tapi tetap
+/// disimpan sebagai 1 kolom teks (picPatroli) supaya tidak perlu ubah skema
+/// database/Supabase/PDF yang sudah berjalan. Fungsi ini yang menggabung &
+/// memisahkannya lagi saat ditampilkan.
+String _gabungPic(String lm, String hsse) => 'LM: ${lm.trim()} | HSSE: ${hsse.trim()}';
+
+final _polaPic = RegExp(r'^LM:\s*(.*?)\s*\|\s*HSSE:\s*(.*)$');
+(String, String) _pisahPic(String gabungan) {
+  final match = _polaPic.firstMatch(gabungan);
+  if (match != null) return (match.group(1) ?? '', match.group(2) ?? '');
+  return (gabungan, ''); // data lama (sebelum fitur ini) -> taruh di LM saja
+}
+
 class _InputLaporanPageState extends State<InputLaporanPage> {
   final PageController _pageController = PageController();
   int _halaman = 0;
 
   DateTime? _tanggal;
   String? _jamPatroli;
-  final TextEditingController _picController = TextEditingController();
+  final TextEditingController _picLmController = TextEditingController();
+  final TextEditingController _picHsseController = TextEditingController();
 
   Duration? _offsetJamDunia;
   bool _loadingJamDunia = true;
@@ -91,7 +105,9 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
     setState(() {
       _tanggal = DateFormat('dd-MM-yyyy').parse(detail.tanggal);
       _jamPatroli = detail.jamPatroli;
-      _picController.text = detail.picPatroli;
+      final (lm, hsse) = _pisahPic(detail.picPatroli);
+      _picLmController.text = lm;
+      _picHsseController.text = hsse;
       _waktuDibuatAsli = detail.waktuDibuat;
       _loading = detail.loading;
       _discharge = detail.discharge;
@@ -114,7 +130,9 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
     setState(() {
       _tanggal = DateFormat('dd-MM-yyyy').parse(sumber.tanggal);
       _jamPatroli = null;
-      _picController.text = sumber.picPatroli;
+      final (lm, hsse) = _pisahPic(sumber.picPatroli);
+      _picLmController.text = lm;
+      _picHsseController.text = hsse;
       _loading = sumber.loading;
       _discharge = sumber.discharge;
       _penyaluran = sumber.penyaluran;
@@ -128,7 +146,8 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
 
   @override
   void dispose() {
-    _picController.dispose();
+    _picLmController.dispose();
+    _picHsseController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -210,9 +229,10 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
       _tampilkanPesan('Gagal memuat data akun, silakan login ulang');
       return;
     }
-    if (_tanggal == null || _jamPatroli == null || _picController.text.trim().isEmpty) {
+    if (_tanggal == null || _jamPatroli == null ||
+        (_picLmController.text.trim().isEmpty && _picHsseController.text.trim().isEmpty)) {
       _kePage(0);
-      _tampilkanPesan('Lengkapi dulu Tanggal, Jam Patroli, dan PIC di langkah "Info & Foto"');
+      _tampilkanPesan('Lengkapi dulu Tanggal, Jam Patroli, dan minimal salah satu PIC (LM/HSSE) di langkah "Info & Foto"');
       return;
     }
     if (!widget.modeEdit && _offsetJamDunia == null) {
@@ -253,7 +273,7 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
       namaPembuat: namaPembuat,
       tanggal: tanggalStr,
       jamPatroli: _jamPatroli!,
-      picPatroli: _picController.text.trim(),
+      picPatroli: _gabungPic(_picLmController.text, _picHsseController.text),
       waktuDibuat: waktuDibuat,
       loading: _loading,
       discharge: _discharge,
@@ -388,11 +408,13 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: _picController,
-          decoration: const InputDecoration(
-            labelText: 'PIC Patroli (contoh: Muhammad Haikal / Loading Master)',
-            border: OutlineInputBorder(),
-          ),
+          controller: _picLmController,
+          decoration: const InputDecoration(labelText: 'PIC Patroli - Loading Master (LM)', border: OutlineInputBorder()),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _picHsseController,
+          decoration: const InputDecoration(labelText: 'PIC Patroli - HSSE', border: OutlineInputBorder()),
         ),
         const SizedBox(height: 8),
         JamDuniaBaris(
