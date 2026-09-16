@@ -8,11 +8,19 @@ const List<String> daftarTangki = [
 const String kondisiAman = 'Aman';
 const String kondisiTidakAman = 'Tidak Aman';
 
+/// Pilihan jenis produk untuk tangki yang berstatus Aktif.
+const List<String> daftarProdukTangki = [
+  'Pertamax Turbo', 'Pertamax 92', 'Pertalite', 'Solar', 'Fame',
+];
+
 /// Batas maksimal foto pendukung yang boleh dilampirkan di satu textfield Note.
 const int maksimalFotoNote = 3;
 
 List<String> _daftarString(dynamic v) =>
     v == null ? <String>[] : List<String>.from(v as List);
+
+Map<String, String> _petaString(dynamic v) =>
+    v == null ? <String, String>{} : Map<String, String>.from(v as Map);
 
 /// Bentuk data untuk kegiatan "Loading" & "Discharge" (strukturnya sama).
 class LoadingDischargeData {
@@ -155,6 +163,7 @@ class StorageData {
   final List<String> tangkiDischarge;
   final List<String> tangkiPenyaluran;
   final List<String> tangkiAktifIdle;
+  final Map<String, String> jenisProdukAktif; // kode tangki -> jenis produk (khusus tangki Aktif)
   final List<String> tangkiOff;
   final String kondisi;
   final String note;
@@ -166,6 +175,7 @@ class StorageData {
     this.tangkiDischarge = const [],
     this.tangkiPenyaluran = const [],
     this.tangkiAktifIdle = const [],
+    this.jenisProdukAktif = const {},
     this.tangkiOff = const [],
     this.kondisi = kondisiAman,
     this.note = '',
@@ -178,6 +188,7 @@ class StorageData {
     List<String>? tangkiDischarge,
     List<String>? tangkiPenyaluran,
     List<String>? tangkiAktifIdle,
+    Map<String, String>? jenisProdukAktif,
     List<String>? tangkiOff,
     String? kondisi,
     String? note,
@@ -189,6 +200,7 @@ class StorageData {
       tangkiDischarge: tangkiDischarge ?? this.tangkiDischarge,
       tangkiPenyaluran: tangkiPenyaluran ?? this.tangkiPenyaluran,
       tangkiAktifIdle: tangkiAktifIdle ?? this.tangkiAktifIdle,
+      jenisProdukAktif: jenisProdukAktif ?? this.jenisProdukAktif,
       tangkiOff: tangkiOff ?? this.tangkiOff,
       kondisi: kondisi ?? this.kondisi,
       note: note ?? this.note,
@@ -202,6 +214,7 @@ class StorageData {
         'tangkiDischarge': tangkiDischarge,
         'tangkiPenyaluran': tangkiPenyaluran,
         'tangkiAktifIdle': tangkiAktifIdle,
+        'jenisProdukAktif': jenisProdukAktif,
         'tangkiOff': tangkiOff,
         'kondisi': kondisi,
         'note': note,
@@ -215,6 +228,7 @@ class StorageData {
       tangkiDischarge: _daftarString(map['tangkiDischarge']),
       tangkiPenyaluran: _daftarString(map['tangkiPenyaluran']),
       tangkiAktifIdle: _daftarString(map['tangkiAktifIdle']),
+      jenisProdukAktif: _petaString(map['jenisProdukAktif']),
       tangkiOff: _daftarString(map['tangkiOff']),
       kondisi: map['kondisi'] ?? kondisiAman,
       note: map['note'] ?? '',

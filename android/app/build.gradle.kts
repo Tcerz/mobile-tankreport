@@ -49,7 +49,7 @@ android {
         variant.outputs.all {
             val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
             // Ubah "NamaAplikasiSaya" sesuai dengan nama APK yang Anda inginkan
-            output.outputFileName = "Laporan Tangki.apk"
+            output.outputFileName = "DIGISAFPAT Beta.apk"
         }
     }
 }

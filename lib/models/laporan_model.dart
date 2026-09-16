@@ -42,11 +42,11 @@ class Laporan {
     this.remoteId,
   });
 
-  Laporan copyWith({String? userId, String? remoteId, String? uploadStatus}) {
+  Laporan copyWith({String? userId, String? remoteId, String? uploadStatus, List<FotoLaporan>? fotos, String? tanggal}) {
     return Laporan(
       id: id,
       namaPembuat: namaPembuat,
-      tanggal: tanggal,
+      tanggal: tanggal ?? this.tanggal,
       jamPatroli: jamPatroli,
       picPatroli: picPatroli,
       waktuDibuat: waktuDibuat,
@@ -54,7 +54,7 @@ class Laporan {
       discharge: discharge,
       penyaluran: penyaluran,
       storage: storage,
-      fotos: fotos,
+      fotos: fotos ?? this.fotos,
       uploadStatus: uploadStatus ?? this.uploadStatus,
       userId: userId ?? this.userId,
       remoteId: remoteId ?? this.remoteId,

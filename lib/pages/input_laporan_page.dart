@@ -26,12 +26,18 @@ class InputLaporanPage extends StatefulWidget {
   /// Kalau diisi (dan [laporanId] null) -> mode DUPLIKAT: membuat laporan
   /// BARU dengan PIC & seluruh data 4 kegiatan disalin dari laporan ini,
   /// tapi Jam Patroli & foto dikosongkan (wajib diisi ulang).
+  /// Sumbernya laporan MILIK SENDIRI di device ini (dicari lewat id lokal).
   final int? duplikatDariId;
 
-  const InputLaporanPage({super.key, this.laporanId, this.duplikatDariId});
+  /// Alternatif dari [duplikatDariId]: dipakai saat duplikat berasal dari
+  /// laporan MILIK ORANG LAIN (tab Posted) -- datanya sudah diambil
+  /// langsung dari server, tanpa foto (foto wajib diambil ulang sendiri).
+  final Laporan? duplikatData;
+
+  const InputLaporanPage({super.key, this.laporanId, this.duplikatDariId, this.duplikatData});
 
   bool get modeEdit => laporanId != null;
-  bool get modeDuplikat => laporanId == null && duplikatDariId != null;
+  bool get modeDuplikat => laporanId == null && (duplikatDariId != null || duplikatData != null);
 
   @override
   State<InputLaporanPage> createState() => _InputLaporanPageState();
@@ -122,7 +128,8 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
 
   Future<void> _muatLaporanUntukDuplikat() async {
     setState(() => _loadingAwal = true);
-    final sumber = await context.read<LaporanProvider>().fetchDetail(widget.duplikatDariId!);
+    final sumber = widget.duplikatData ??
+        await context.read<LaporanProvider>().fetchDetail(widget.duplikatDariId!);
     if (sumber == null) {
       if (mounted) setState(() => _loadingAwal = false);
       return;
@@ -302,7 +309,7 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
 
     if (!mounted) return;
     setState(() => _menyimpan = false);
-    Navigator.pop(context);
+    Navigator.pop(context, true);
   }
 
   String get _judul {
@@ -381,9 +388,9 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Foto & seluruh data kegiatan disalin dari laporan sebelumnya. '
-                    'Jam dan suhu tiap foto akan otomatis diperbarui. Silakan pilih '
-                    'Jam Patroli yang baru.',
+                    'PIC & data kegiatan disalin dari laporan sebelumnya. '
+                    'Periksa kembali foto dan pilih Jam Patroli yang baru '
+                    'sebelum menyimpan.',
                     style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
                   ),
                 ),

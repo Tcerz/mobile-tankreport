@@ -18,6 +18,21 @@ Sebelumnya, database lokal (SQLite) tidak membedakan pemilik laporan — semua a
 - **Sinkronisasi antar-device**: saat login, aplikasi otomatis menarik (download) laporan milik akun tsb dari server — jadi kalau akun A login di HP baru, laporan yang pernah diupload dari HP lama akan muncul lagi. Ada juga tombol sinkron manual (ikon 🔄 di halaman utama) untuk menarik ulang kapan saja.
 - Catatan: sinkronisasi ini hanya menarik laporan yang **sudah diupload** ke server (status "Terupload"). Laporan yang masih berstatus lokal di HP lain (belum diupload) tidak akan ikut tertarik — itu sesuai desain, karena data itu memang belum pernah dikirim ke server.
 
+## Fitur baru: tab "Aktivitas" & "Posted"
+Aplikasi sekarang punya navigasi bawah dengan 2 tab:
+- **Aktivitas** — halaman utama seperti biasa, isinya laporan MILIK SENDIRI (lokal + yang sudah diupload).
+- **Posted** — menampilkan laporan yang sudah diupload oleh SEMUA petugas di **depot yang sama** (read-only, tidak bisa diedit). Ada tombol **Duplikat** di tiap laporan — ini akan membuat laporan BARU milik akun yang sedang login (bukan mengedit punya orang lain). PIC, data kegiatan, **dan foto** ikut tersalin (foto diunduh otomatis dari server ke device), tapi begitu disimpan, **tanggal laporan serta jam & suhu di tiap foto otomatis diperbarui** mengikuti waktu saat proses duplikat itu disimpan (bukan waktu punya laporan asli) — sama seperti duplikat laporan sendiri. Setelah berhasil disimpan, otomatis pindah ke tab Aktivitas.
+
+**Penting**: fitur "Posted" butuh migrasi SQL tambahan di backend — lihat `migration_05_posted_sedepot.sql` di paket dashboard (`SETUP_DASHBOARD.md`). Tanpa migrasi itu, tab Posted akan selalu tampil kosong meski ada laporan di depot yang sama.
+
+Detail perilaku duplikat dari Posted: foto ikut terbawa (diunduh otomatis jadi file lokal), tanggal laporan mengikuti tanggal laporan ASLI (bukan hari ini), tapi jam & suhu pada tiap foto otomatis diperbarui mengikuti waktu saat laporan baru ini benar-benar DISIMPAN (bukan saat tombol Duplikat ditekan).
+
+## Fitur baru: aturan saling-eksklusif tangki & jenis produk
+Di form Storage (Penimbunan):
+- **Grup 1** (saling mengunci satu sama lain): Tangki Loading, Discharge, Penyaluran — satu tangki cuma boleh masuk salah satu dari ketiganya.
+- **Grup 2** (saling mengunci, terpisah dari Grup 1): Tangki Aktif/Idle vs Tangki Off — satu tangki cuma boleh salah satu.
+- Setiap tangki yang dipilih di **Tangki Aktif/Idle** sekarang wajib diisi **jenis produknya** (Pertamax Turbo/Pertamax 92/Pertalite/Solar/Fame), muncul otomatis di bawah daftar tangki tsb.
+
 ## Langkah setup
 
 0. **Keamanan dulu**: `lib/config/supabase_config.dart` berisi kredensial asli dan sudah masuk `.gitignore` — jangan pernah hapus baris itu dari `.gitignore`. Kalau file ini belum ada di project Anda, salin dari `lib/config/supabase_config.example.dart` (hapus akhiran `.example`), baru isi nilainya.

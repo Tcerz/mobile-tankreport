@@ -77,7 +77,7 @@ class PdfService {
           _baris('Tangki Loading', _fmtTangki(laporan.storage.tangkiLoading)),
           _baris('Tangki Discharge', _fmtTangki(laporan.storage.tangkiDischarge)),
           _baris('Tangki Penyaluran', _fmtTangki(laporan.storage.tangkiPenyaluran)),
-          _baris('Tangki Aktif/Idle', _fmtTangki(laporan.storage.tangkiAktifIdle)),
+          _baris('Tangki Aktif/Idle', _fmtTangkiAktif(laporan.storage.tangkiAktifIdle, laporan.storage.jenisProdukAktif)),
           _baris('Tangki Off', _fmtTangki(laporan.storage.tangkiOff)),
           _baris('Kondisi', laporan.storage.kondisi),
           _baris('Note', laporan.storage.note),
@@ -113,6 +113,11 @@ class PdfService {
 
   static String _fmtTangki(List<String> list) =>
       list.isEmpty ? 'NIHIL' : list.join(', ');
+
+  static String _fmtTangkiAktif(List<String> list, Map<String, String> produk) {
+    if (list.isEmpty) return 'NIHIL';
+    return list.map((k) => produk[k] != null ? '$k ${produk[k]}' : k).join('\n');
+  }
 
   static pw.Widget _judulSeksi(String judul) {
     return pw.Text(

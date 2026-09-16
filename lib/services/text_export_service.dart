@@ -54,7 +54,7 @@ class TextExportService {
     buffer.writeln('- Tangki Loading : ${_fmt(laporan.storage.tangkiLoading)}');
     buffer.writeln('- Tangki Discharge : ${_fmt(laporan.storage.tangkiDischarge)}');
     buffer.writeln('- Tangki Penyaluran : ${_fmt(laporan.storage.tangkiPenyaluran)}');
-    buffer.writeln('- Tangki Aktif/Idle : ${_fmt(laporan.storage.tangkiAktifIdle)}');
+    buffer.writeln('- Tangki Aktif/Idle : ${_fmtAktif(laporan.storage.tangkiAktifIdle, laporan.storage.jenisProdukAktif)}');
     buffer.writeln('- Tangki Off : ${_fmt(laporan.storage.tangkiOff)}');
     buffer.writeln('- Kondisi : ${laporan.storage.kondisi}');
     buffer.writeln('- Note : ${_v(laporan.storage.note)}');
@@ -69,4 +69,9 @@ class TextExportService {
 
   static String _v(String s) => s.trim().isEmpty ? 'NIHIL' : s;
   static String _fmt(List<String> list) => list.isEmpty ? 'NIHIL' : list.join(', ');
+
+  static String _fmtAktif(List<String> list, Map<String, String> produk) {
+    if (list.isEmpty) return 'NIHIL';
+    return list.map((k) => produk[k] != null ? '$k ${produk[k]}' : k).join(', ');
+  }
 }

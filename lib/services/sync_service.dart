@@ -29,7 +29,7 @@ class SyncService {
 
       final fotos = <FotoLaporan>[];
       for (final f in (row['report_photos'] as List)) {
-        final path = await _unduhFoto(f['photo_url'] as String, '${remoteId}_${f['kategori']}');
+        final path = await unduhFoto(f['photo_url'] as String, '${remoteId}_${f['kategori']}');
         if (path == null) continue;
         fotos.add(FotoLaporan(
           kategori: f['kategori'] as String,
@@ -63,10 +63,11 @@ class SyncService {
     return jumlahBaru;
   }
 
-  /// Unduh 1 foto dari Supabase Storage ke folder dokumen lokal.
-  /// Kalau gagal (mis. tidak ada internet), laporan tetap ditarik tanpa
-  /// foto itu -- daripada gagal semua.
-  static Future<String?> _unduhFoto(String url, String namaFile) async {
+  /// Unduh 1 foto dari Supabase Storage ke folder dokumen lokal. Dipakai
+  /// juga oleh fitur duplikat dari tab Posted (lib/pages/posted_page.dart).
+  /// Kalau gagal (mis. tidak ada internet), return null -- pemanggil boleh
+  /// memutuskan sendiri mau lanjut tanpa foto itu atau membatalkan.
+  static Future<String?> unduhFoto(String url, String namaFile) async {
     try {
       final res = await http.get(Uri.parse(url));
       if (res.statusCode != 200) return null;
@@ -77,5 +78,19 @@ class SyncService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// Dipakai saat menduplikat laporan MILIK ORANG LAIN (tab Posted): foto
+  /// aslinya cuma berupa URL server, harus diunduh dulu jadi file lokal
+  /// supaya bisa ditampilkan & diupload ulang seperti foto normal. Kalau
+  /// ada foto yang gagal diunduh, foto itu saja yang dilewati.
+  static Future<List<FotoLaporan>> unduhSemuaFotoUntukDuplikat(List<FotoLaporan> asli, String prefix) async {
+    final hasil = <FotoLaporan>[];
+    for (final f in asli) {
+      final path = await unduhFoto(f.imagePath, '${prefix}_${f.kategori}');
+      if (path == null) continue;
+      hasil.add(f.copyWith(imagePath: path));
+    }
+    return hasil;
   }
 }
