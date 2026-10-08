@@ -90,10 +90,10 @@ class PdfService {
     // seperti hasil tombol "Cetak JPG"). Dihitung dari bytes di memori
     // langsung, tanpa menulis/membaca file sementara ke disk.
     for (final foto in laporan.fotos) {
-      final entries = ImageStampService.entriesUntukFoto(foto, laporan.namaPembuat);
       final imageBytes = await ImageStampService.stampImageBytes(
         imagePath: foto.imagePath,
-        entries: entries,
+        foto: foto,
+        namaPembuat: laporan.namaPembuat,
       );
       final image = pw.MemoryImage(imageBytes);
 

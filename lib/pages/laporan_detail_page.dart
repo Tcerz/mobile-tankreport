@@ -54,7 +54,8 @@ class _LaporanDetailPageState extends State<LaporanDetailPage> {
     try {
       final bytes = await ImageStampService.stampImageBytes(
         imagePath: foto.imagePath,
-        entries: ImageStampService.entriesUntukFoto(foto, _laporan?.namaPembuat ?? ''),
+        foto: foto,
+        namaPembuat: _laporan?.namaPembuat ?? '',
       );
       final namaDasar = DownloadService.namaFile(
         _laporan?.tanggal ?? '',
