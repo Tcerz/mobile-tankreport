@@ -34,22 +34,35 @@ class InputLaporanPage extends StatefulWidget {
   /// langsung dari server, tanpa foto (foto wajib diambil ulang sendiri).
   final Laporan? duplikatData;
 
-  const InputLaporanPage({super.key, this.laporanId, this.duplikatDariId, this.duplikatData});
+  const InputLaporanPage({
+    super.key,
+    this.laporanId,
+    this.duplikatDariId,
+    this.duplikatData,
+  });
 
   bool get modeEdit => laporanId != null;
-  bool get modeDuplikat => laporanId == null && (duplikatDariId != null || duplikatData != null);
+  bool get modeDuplikat =>
+      laporanId == null && (duplikatDariId != null || duplikatData != null);
 
   @override
   State<InputLaporanPage> createState() => _InputLaporanPageState();
 }
 
-const _judulLangkah = ['Info & Foto', '1. Loading', '2. Discharge', '3. Penyaluran', '4. Storage (Penimbunan)'];
+const _judulLangkah = [
+  'Info & Foto',
+  '1. Loading',
+  '2. Discharge',
+  '3. Penyaluran',
+  '4. Storage (Penimbunan)',
+];
 
 /// PIC Patroli terdiri dari 2 peran (Loading Master & HSSE), tapi tetap
 /// disimpan sebagai 1 kolom teks (picPatroli) supaya tidak perlu ubah skema
 /// database/Supabase/PDF yang sudah berjalan. Fungsi ini yang menggabung &
 /// memisahkannya lagi saat ditampilkan.
-String _gabungPic(String lm, String hsse) => 'LM: ${lm.trim()} | HSSE: ${hsse.trim()}';
+String _gabungPic(String lm, String hsse) =>
+    'LM: ${lm.trim()} | HSSE: ${hsse.trim()}';
 
 final _polaPic = RegExp(r'^LM:\s*(.*?)\s*\|\s*HSSE:\s*(.*)$');
 (String, String) _pisahPic(String gabungan) {
@@ -103,7 +116,9 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
 
   Future<void> _muatLaporanUntukEdit() async {
     setState(() => _loadingAwal = true);
-    final detail = await context.read<LaporanProvider>().fetchDetail(widget.laporanId!);
+    final detail = await context.read<LaporanProvider>().fetchDetail(
+      widget.laporanId!,
+    );
     if (detail == null) {
       if (mounted) setState(() => _loadingAwal = false);
       return;
@@ -128,8 +143,11 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
 
   Future<void> _muatLaporanUntukDuplikat() async {
     setState(() => _loadingAwal = true);
-    final sumber = widget.duplikatData ??
-        await context.read<LaporanProvider>().fetchDetail(widget.duplikatDariId!);
+    final sumber =
+        widget.duplikatData ??
+        await context.read<LaporanProvider>().fetchDetail(
+          widget.duplikatDariId!,
+        );
     if (sumber == null) {
       if (mounted) setState(() => _loadingAwal = false);
       return;
@@ -168,13 +186,17 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
       final waktuDunia = await TimeService.getCurrentWorldTime();
       setState(() => _offsetJamDunia = waktuDunia.difference(DateTime.now()));
     } catch (e) {
-      setState(() => _errorJamDunia = 'Gagal mengambil jam dunia. Periksa koneksi internet.');
+      setState(
+        () => _errorJamDunia =
+            'Gagal mengambil jam dunia. Periksa koneksi internet.',
+      );
     } finally {
       if (mounted) setState(() => _loadingJamDunia = false);
     }
   }
 
-  DateTime _waktuSaatIni() => DateTime.now().add(_offsetJamDunia ?? Duration.zero);
+  DateTime _waktuSaatIni() =>
+      DateTime.now().add(_offsetJamDunia ?? Duration.zero);
 
   void _tampilkanPesan(String pesan) {
     if (!mounted) return;
@@ -193,8 +215,14 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
       if (file == null) return;
 
       final pos = await LocationService.getCurrentLocation();
-      final alamat = await LocationService.getAddressFromCoordinates(pos.latitude, pos.longitude);
-      final suhu = await WeatherService.getSuhuSaatIni(pos.latitude, pos.longitude);
+      final alamat = await LocationService.getAddressFromCoordinates(
+        pos.latitude,
+        pos.longitude,
+      );
+      final suhu = await WeatherService.getSuhuSaatIni(
+        pos.latitude,
+        pos.longitude,
+      );
       final jamStr = DateFormat('dd-MM-yyyy HH:mm:ss').format(_waktuSaatIni());
 
       final foto = FotoLaporan(
@@ -226,7 +254,11 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
 
   void _kePage(int target) {
     setState(() => _halaman = target);
-    _pageController.animateToPage(target, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+    _pageController.animateToPage(
+      target,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
   }
 
   Future<void> _simpanLaporan() async {
@@ -236,18 +268,27 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
       _tampilkanPesan('Gagal memuat data akun, silakan login ulang');
       return;
     }
-    if (_tanggal == null || _jamPatroli == null ||
-        (_picLmController.text.trim().isEmpty && _picHsseController.text.trim().isEmpty)) {
+    if (_tanggal == null ||
+        _jamPatroli == null ||
+        (_picLmController.text.trim().isEmpty &&
+            _picHsseController.text.trim().isEmpty)) {
       _kePage(0);
-      _tampilkanPesan('Lengkapi dulu Tanggal, Jam Patroli, dan minimal salah satu PIC (LM/HSSE) di langkah "Info & Foto"');
+      _tampilkanPesan(
+        'Lengkapi dulu Tanggal, Jam Patroli, dan minimal salah satu PIC (LM/HSSE) di langkah "Info & Foto"',
+      );
       return;
     }
     if (!widget.modeEdit && _offsetJamDunia == null) {
       _kePage(0);
-      _tampilkanPesan('Jam dunia belum berhasil diambil. Tekan ikon refresh jam dahulu.');
+      _tampilkanPesan(
+        'Jam dunia belum berhasil diambil. Tekan ikon refresh jam dahulu.',
+      );
       return;
     }
-    final belumLengkap = _fotoMap.entries.where((e) => e.value == null).map((e) => e.key).toList();
+    final belumLengkap = _fotoMap.entries
+        .where((e) => e.value == null)
+        .map((e) => e.key)
+        .toList();
     if (belumLengkap.isNotEmpty) {
       final lanjut = await showDialog<bool>(
         context: context,
@@ -260,8 +301,14 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
             'lainnya untuk melengkapi sisa foto.',
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Simpan Sekarang')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Simpan Sekarang'),
+            ),
           ],
         ),
       );
@@ -293,7 +340,10 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
       final f = _fotoMap[k];
       if (f == null) continue;
       if (widget.modeDuplikat) {
-        final suhuBaru = await WeatherService.getSuhuSaatIni(f.latitude, f.longitude);
+        final suhuBaru = await WeatherService.getSuhuSaatIni(
+          f.latitude,
+          f.longitude,
+        );
         fotos.add(f.copyWith(jam: waktuDibuat, suhu: suhuBaru));
       } else {
         fotos.add(f);
@@ -339,10 +389,32 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
               onPageChanged: (i) => setState(() => _halaman = i),
               children: [
                 _halamanInfoFoto(),
-                _halamanKegiatan(LoadingDischargeForm(judul: '1. Loading', data: _loading, onChanged: (v) => setState(() => _loading = v))),
-                _halamanKegiatan(LoadingDischargeForm(judul: '2. Discharge', data: _discharge, onChanged: (v) => setState(() => _discharge = v))),
-                _halamanKegiatan(PenyaluranForm(data: _penyaluran, onChanged: (v) => setState(() => _penyaluran = v))),
-                _halamanKegiatan(StorageForm(data: _storage, onChanged: (v) => setState(() => _storage = v))),
+                _halamanKegiatan(
+                  LoadingDischargeForm(
+                    judul: '1. Loading',
+                    data: _loading,
+                    onChanged: (v) => setState(() => _loading = v),
+                  ),
+                ),
+                _halamanKegiatan(
+                  LoadingDischargeForm(
+                    judul: '2. Discharge',
+                    data: _discharge,
+                    onChanged: (v) => setState(() => _discharge = v),
+                  ),
+                ),
+                _halamanKegiatan(
+                  PenyaluranForm(
+                    data: _penyaluran,
+                    onChanged: (v) => setState(() => _penyaluran = v),
+                  ),
+                ),
+                _halamanKegiatan(
+                  StorageForm(
+                    data: _storage,
+                    onChanged: (v) => setState(() => _storage = v),
+                  ),
+                ),
               ],
             ),
           ),
@@ -399,29 +471,47 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
           ),
           const SizedBox(height: 12),
         ],
-        const Text('Informasi Patroli', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const Text(
+          'Informasi Patroli',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: _pilihTanggal,
           icon: const Icon(Icons.calendar_today, size: 18),
-          label: Text(_tanggal == null ? 'Pilih Tanggal' : 'Tanggal: ${DateFormat('dd-MM-yyyy').format(_tanggal!)}'),
+          label: Text(
+            _tanggal == null
+                ? 'Pilih Tanggal'
+                : 'Tanggal: ${DateFormat('dd-MM-yyyy').format(_tanggal!)}',
+          ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: _jamPatroli,
-          decoration: const InputDecoration(labelText: 'Jam Patroli', border: OutlineInputBorder()),
-          items: daftarJamPatroli.map((j) => DropdownMenuItem(value: j, child: Text('$j WIB'))).toList(),
+          decoration: const InputDecoration(
+            labelText: 'Jam Patroli',
+            border: OutlineInputBorder(),
+          ),
+          items: daftarJamPatroli
+              .map((j) => DropdownMenuItem(value: j, child: Text('$j WIB')))
+              .toList(),
           onChanged: (v) => setState(() => _jamPatroli = v),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _picLmController,
-          decoration: const InputDecoration(labelText: 'PIC Patroli - Loading Master (LM)', border: OutlineInputBorder()),
+          decoration: const InputDecoration(
+            labelText: 'PIC Patroli - Loading Master (LM)',
+            border: OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _picHsseController,
-          decoration: const InputDecoration(labelText: 'PIC Patroli - HSSE', border: OutlineInputBorder()),
+          decoration: const InputDecoration(
+            labelText: 'PIC Patroli - HSSE',
+            border: OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: 8),
         JamDuniaBaris(
@@ -434,31 +524,54 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
           const SizedBox(height: 4),
           Text(
             'Waktu dibuat awal: $_waktuDibuatAsli (tidak berubah walau diedit)',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade600,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
         const SizedBox(height: 20),
         Row(
           children: [
-            const Text('Foto Patroli', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text(
+              'Foto Patroli',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(width: 8),
-            Builder(builder: (context) {
-              final terisi = _fotoMap.values.where((v) => v != null).length;
-              final total = KategoriFoto.semua.length;
-              final lengkap = terisi >= total;
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: lengkap ? Colors.green.shade50 : Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: lengkap ? Colors.green.shade200 : Colors.orange.shade200),
-                ),
-                child: Text(
-                  '$terisi/$total',
-                  style: TextStyle(fontSize: 12, color: lengkap ? Colors.green.shade700 : Colors.orange.shade700),
-                ),
-              );
-            }),
+            Builder(
+              builder: (context) {
+                final terisi = _fotoMap.values.where((v) => v != null).length;
+                final total = KategoriFoto.semua.length;
+                final lengkap = terisi >= total;
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: lengkap
+                        ? Colors.green.shade50
+                        : Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: lengkap
+                          ? Colors.green.shade200
+                          : Colors.orange.shade200,
+                    ),
+                  ),
+                  child: Text(
+                    '$terisi/$total',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: lengkap
+                          ? Colors.green.shade700
+                          : Colors.orange.shade700,
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
         const SizedBox(height: 4),
@@ -501,13 +614,30 @@ class _InputLaporanPageState extends State<InputLaporanPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: _menyimpan ? null : (akhir ? _simpanLaporan : () => _kePage(_halaman + 1)),
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+              onPressed: _menyimpan
+                  ? null
+                  : (akhir ? _simpanLaporan : () => _kePage(_halaman + 1)),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
               child: _menyimpan
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text(akhir
-                      ? (widget.modeEdit ? 'Simpan Perubahan' : widget.modeDuplikat ? 'Simpan Laporan Baru' : 'Simpan Laporan')
-                      : 'Selanjutnya'),
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      akhir
+                          ? (widget.modeEdit
+                                ? 'Simpan Perubahan'
+                                : widget.modeDuplikat
+                                ? 'Simpan Laporan Baru'
+                                : 'Simpan Laporan')
+                          : 'Selanjutnya',
+                    ),
             ),
           ),
         ],
